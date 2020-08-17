@@ -1,0 +1,96 @@
+<!doctype html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+		<title>asdf-vm</title>
+
+		<link rel="stylesheet" href="dist/reset.css">
+		<link rel="stylesheet" href="dist/reveal.css">
+		<link rel="stylesheet" href="dist/theme/blood.css" id="theme">
+
+		<!-- Theme used for syntax highlighted code -->
+		<link rel="stylesheet" href="plugin/highlight/monokai.css" id="highlight-theme">
+	</head>
+	<body>
+		<div class="reveal">
+			<div class="slides">
+				<section>
+					<h2>asdf-vm</h2>
+					<h4>One Version Manager to rule them all</h4>
+					<small>Jared Szechy</small>
+				</section>
+				<section>
+					<h2>Install</h2>
+					<pre><code class="shell" data-trim data-noescape>$ brew install asdf</code></pre>
+					<h4>.bashrc / .zshrc</h4>
+					<pre><code class="shell" data-trim data-noescape>. $(brew --prefix asdf)/asdf.sh</code></pre>
+					<small class="caption"><a href="https://asdf-vm.com/#/core-manage-asdf-vm?id=install" target="_blank">asdf-vm.com/#/core-manage-asdf-vm?id=install</a></small>
+				</section>
+				<section>
+					<h2>Plugins</h2>
+					<p>Each language/application has its own plugin. Currently over 200 plugins published.</p>
+					<pre><code class="shell" data-trim data-noescape>$ asdf plugin-list-all</code></pre>
+					<small class="caption"><a href="https://asdf-vm.com/#/plugins-all" target="_blank">asdf-vm.com/#/plugins-all</a></small>
+				</section>
+				<section>
+					<h2>Ruby</h2>
+					<pre><code class="shell" data-trim data-noescape>$ asdf plugin-add ruby</code></pre>
+					<pre><code class="shell" data-trim data-noescape>$ asdf install ruby 2.7.1</code></pre>
+					<pre><code class="shell" data-trim data-noescape>$ cat ~/.default-gems
+bundler
+pry
+rubocop</code></pre>
+					<small class="caption"><a href="https://github.com/asdf-vm/asdf-ruby" target="_blank">github.com/asdf-vm/asdf-ruby</a></small>
+				</section>
+				<section>
+					<h2>Node</h2>
+					<pre><code class="shell" data-trim data-noescape>$ asdf plugin-add nodejs
+$ bash -c '${ASDF_DATA_DIR:=$HOME/.asdf}/plugins/nodejs/bin/import-release-team-keyring'</code></pre>
+					<pre><code class="shell" data-trim data-noescape>$ asdf install nodejs 12.18.3</code></pre>
+					<pre><code class="shell" data-trim data-noescape>$ cat ~/.default-npm-packages
+http-server
+npm-merge-driver
+sass-lint
+serverless
+yarn</code></pre>
+					<small class="caption"><a href="https://github.com/asdf-vm/asdf-nodejs" target="_blank">github.com/asdf-vm/asdf-nodejs</a></small>
+				</section>
+				<section>
+					<h2>Usage</h2>
+					<h4>Global default</h4>
+					<pre><code class="shell" data-trim data-noescape>$ asdf global ruby 2.7.1</code></pre>
+					<h4>Shims</h4>
+					<pre><code class="shell" data-trim data-noescape>$ asdf reshim ruby</code></pre>
+					<h4>Config file</h4>
+					<pre><code class="shell" data-trim data-noescape>$ cat ~/.asdfrc
+legacy_version_file = yes
+always_keep_download = yes</code></pre>
+				</section>
+				<section>
+					<h3>Questions? Demo?</h3>
+					<a href="https://asdf-vm.com" target="_blank">asdf-vm.com</a>
+				</section>
+			</div>
+		</div>
+
+		<script src="dist/reveal.js"></script>
+		<script src="plugin/notes/notes.js"></script>
+		<script src="plugin/markdown/markdown.js"></script>
+		<script src="plugin/highlight/highlight.js"></script>
+		<script>
+			// More info about initialization & config:
+			// - https://revealjs.com/initialization/
+			// - https://revealjs.com/config/
+			Reveal.initialize({
+				hash: true,
+				width: '80%',
+				height: '80%',
+
+				// Learn about plugins: https://revealjs.com/plugins/
+				plugins: [ RevealMarkdown, RevealHighlight, RevealNotes ]
+			});
+		</script>
+	</body>
+</html>
