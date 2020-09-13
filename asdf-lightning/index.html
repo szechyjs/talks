@@ -9,8 +9,6 @@
 		<link rel="stylesheet" href="../reveal.js/reset.css">
 		<link rel="stylesheet" href="../reveal.js/reveal.css">
 		<link rel="stylesheet" href="../reveal.js/theme/blood.css" id="theme">
-
-		<!-- Theme used for syntax highlighted code -->
 		<link rel="stylesheet" href="../plugin/highlight/monokai.css" id="highlight-theme">
 	</head>
 	<body>
@@ -80,16 +78,15 @@ always_keep_download = yes</code></pre>
 		<script src="../plugin/markdown/markdown.js"></script>
 		<script src="../plugin/highlight/highlight.js"></script>
 		<script>
-			// More info about initialization & config:
-			// - https://revealjs.com/initialization/
-			// - https://revealjs.com/config/
+			var gaPropertyID = 'UA-22714936-4';
 			Reveal.initialize({
 				hash: true,
 				width: '80%',
 				height: '80%',
-
-				// Learn about plugins: https://revealjs.com/plugins/
-				plugins: [ RevealMarkdown, RevealHighlight, RevealNotes ]
+				plugins: [ RevealMarkdown, RevealHighlight, RevealNotes ],
+				dependencies: [
+					{ src: '../plugin/reveal-ga.min.js' }
+				]
 			});
 		</script>
 	</body>
