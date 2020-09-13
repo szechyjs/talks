@@ -42,6 +42,46 @@
                         </code></pre>
                     </section>
                     <section>
+                        <h3>Initialization</h3>
+                        <ul>
+                            <li>Must implement the <em>Init_[ext_name]</em> function</li>
+                            <li>Called when the extension is required</li>
+                            <li>Responsible for defining modules, classes, methods and constants</li>
+                        </ul>
+                        <pre class="cpp"><code data-trim data-noescape>
+                            void Init_hello_ext()
+                            {
+                                // Define things here
+                            }						
+                        </code></pre>
+                    </section>
+                    <section>
+                        <h3>Hello method</h3>
+                        <ul>
+                            <li>Every function must return a VALUE</li>
+                        </ul>
+                        <pre class="cpp"><code data-trim data-noescape>
+                            #include &lt;ruby.h&gt;
+                            #include &lt;stdio.h&gt;
+
+                            static VALUE method_hello_world(VALUE self)
+                            {
+                                printf("Hello, World!\n");
+                                return Qnil;
+                            }					
+                        </code></pre>
+                    </section>
+                    <section>
+                        <h3>Definitions</h3>
+                        <pre class="cpp"><code data-trim data-noescape data-line-numbers="3-4">
+                            void Init_hello_ext()
+                            {
+                                VALUE hello = rb_define_module("HelloExt");
+                                rb_define_singleton_method(hello, "hello_world", method_hello_world, 0);
+                            }						
+                        </code></pre>
+                    </section>
+                    <section>
                         <h3>hello.c</h3>
                         <pre class="cpp"><code data-trim data-noescape>
                             #include &lt;ruby.h&gt;
@@ -67,7 +107,7 @@
                             compiling hello.c
                             linking shared-object hello_ext.so
                         </code></pre>
-                        <pre class="irb"><code data-trim data-noescape>
+                        <pre class="fragment irb"><code data-trim data-noescape>
                             irb(main):001:0> require_relative 'hello_ext'
                             => true
                             irb(main):002:0> HelloExt.hello_world
@@ -75,42 +115,19 @@
                             => nil
                         </code></pre>
                     </section>
-                </section>
-                <section>
-                    <h2>Gem Example</h2>
                     <section>
-                        <h3>gemspec</h3>
+                        <h3>Benchmark</h3>
                         <pre class="ruby"><code data-trim data-noescape>
-                            spec.extensions = %w[ext/my_gem/extconf.rb]
-
-                            # Optional
-                            spec.add_development_dependency "rake-compiler", "~> 1.0"
-                        </code></pre>
-                    </section>
-                    <section>
-                        <h3>Rakefile</h3>
-                        <pre class="ruby"><code data-trim data-noescape>
-                            require "rake/extensiontask"
-
-                            Rake::ExtensionTask.new "my_gem_ext" do |ext|
-                              ext.ext_dir = "ext/my_gem"
-                              ext.lib_dir = "lib/my_gem"
+                            Benchmark.ips do |x|
+                              x.report('ext') { HelloExt.hello_world }
+                              x.report('puts') { puts 'Hello, World!' }
+                              x.compare!
                             end
                         </code></pre>
-                        <p>Compile during development</p>
-                        <pre class="shell"><code data-trim data-noescape>
-                            $ rake compile
-                            install -c tmp/x86_64-darwin18/my_gem_ext/2.7.1/my_gem_ext.bundle lib/my_gem/my_gem_ext.bundle
-                            cp tmp/x86_64-darwin18/my_gem_ext/2.7.1/my_gem_ext.bundle tmp/x86_64-darwin18/stage/lib/my_gem/my_gem_ext.bundle
-                        </code></pre>
-                    </section>
-                    <section>
-                        <h3>Gem Install</h3>
-                        <pre class="shell"><code data-trim data-noescape>
-                            $ gem install my_gem-0.1.0.gem
-                            Building native extensions. This could take a while...
-                            Successfully installed my_gem-0.1.0
-                            1 gem installed
+                        <pre class="text"><code data-trim data-noescape>
+                            Comparison:
+                                 ext:   210489.3 i/s
+                                puts:   174990.8 i/s - same-ish: difference falls within error
                         </code></pre>
                     </section>
                 </section>
@@ -252,12 +269,54 @@
                             irb(main):001:0> Primes::benchmark(10_000_000)
                         </code></pre>
                         <p class="fragment">drumroll...</p>
-                        <pre class="fragment"><code data-trim data-noescape>
-                                      user     system      total        real
-                            rb    1.305186   0.027984   1.333170 (  1.414551)
-                            cpp   0.091689   0.010152   0.101841 (  0.103990)
+                        <pre class="fragment text"><code data-trim data-noescape>
+                            Calculating -------------------------------------
+                                            rb      0.784  (± 0.0%) i/s -      4.000  in   5.106404s
+                                            cpp     11.888  (± 8.4%) i/s -     60.000  in   5.067576s
+
+                            Comparison:
+                                            cpp:       11.9 i/s
+                                            rb:        0.8 i/s - 15.17x  (± 0.00) slower
                         </code></pre>
-                        <p class="fragment">~10x faster</p>
+                        <p class="fragment">~15x faster</p>
+                    </section>
+                </section>
+                <section>
+                    <h2>Gems</h2>
+                    <section>
+                        <h3>gemspec</h3>
+                        <pre class="ruby"><code data-trim data-noescape>
+                            spec.extensions = %w[ext/my_gem/extconf.rb]
+
+                            # Optional
+                            spec.add_development_dependency "rake-compiler", "~> 1.0"
+                        </code></pre>
+                    </section>
+                    <section>
+                        <h3>Rakefile</h3>
+                        <pre class="ruby"><code data-trim data-noescape>
+                            require "rake/extensiontask"
+
+                            Rake::ExtensionTask.new "my_gem_ext" do |ext|
+                              ext.ext_dir = "ext/my_gem"
+                              ext.lib_dir = "lib/my_gem"
+                            end
+                        </code></pre>
+                        <p>Compile during development</p>
+                        <pre class="shell"><code data-trim data-noescape>
+                            $ rake compile
+                            install -c tmp/x86_64-darwin18/my_gem_ext/2.7.1/my_gem_ext.bundle lib/my_gem/my_gem_ext.bundle
+                            cp tmp/x86_64-darwin18/my_gem_ext/2.7.1/my_gem_ext.bundle tmp/x86_64-darwin18/stage/lib/my_gem/my_gem_ext.bundle
+                        </code></pre>
+                    </section>
+                    <section>
+                        <h3>Gem Install</h3>
+                        <pre class="shell"><code data-trim data-noescape>
+                            $ gem install my_gem-0.1.0.gem
+                            Building native extensions. This could take a while...
+                            Successfully installed my_gem-0.1.0
+                            1 gem installed
+                        </code></pre>
                     </section>
                 </section>
                 <section>
