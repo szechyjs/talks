@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <cstdlib>
 #include <ctime>
+#include <ruby.h>
 
 void get_primes7(int n, std::vector<int> &res) {
 	if (n < 2) return;
@@ -39,11 +40,14 @@ void get_primes7(int n, std::vector<int> &res) {
 	res.insert(res.begin() + 1, s.begin(), pend);
 }
 
-extern "C" int get_primes(int);
+extern "C" VALUE get_primes(int);
 
-int get_primes(int n)
-{
+VALUE get_primes(int n) {
     std::vector<int> res;
     get_primes7(n, res);
-    return res.size();
+		VALUE primes = rb_ary_new2(res.size());
+    for (int i = 0; i < res.size(); i++) {
+        rb_ary_store(primes, i, INT2NUM(res[i]));
+    }
+    return primes;
 }

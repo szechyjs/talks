@@ -9,55 +9,121 @@
         <link rel="stylesheet" href="../reveal.js/reset.css">
 		<link rel="stylesheet" href="../reveal.js/reveal.css">
 		<link rel="stylesheet" href="../reveal.js/theme/blood.css" id="theme">
-		<link rel="stylesheet" href="../plugin/highlight/monokai.css" id="highlight-theme">
+        <link rel="stylesheet" href="../plugin/highlight/monokai.css" id="highlight-theme">
+        <link href="https://fonts.googleapis.com/css2?family=Fira+Code&display=swap" rel="stylesheet">
+        <script src="https://kit.fontawesome.com/fb7ced0fb3.js" crossorigin="anonymous"></script>
+        <style>
+            .reveal .footer {
+                position: absolute;
+                bottom: 1em;
+                left: 1em;
+                font-size: .5em;
+            }
+            .container {
+                display: flex;
+            }
+            .col {
+                flex: 1;
+            }
+            .reveal code {
+                font-family: 'Fira Code', monospace;
+            }
+        </style>
     </head>
     <body>
         <div class="reveal">
+            <div class="footer">
+                <a href="https://talks.szechy.dev/rb-native" target="_blank">talks.szechy.dev/rb-native</a>
+            </div>
             <div class="slides">
                 <section>
                     <h2>Ruby C Extensions</h2>
                     <p>Jared Szechy</p>
                 </section>
                 <section>
-                    <h2>Why?</h2>
+                    <h3>About Me</h3>
+                    <div class="container">
+                        <div class="col">
+                            <img src="images/jared.jpg" alt="jared">
+                        </div>
+                        <div class="col">
+                            <h4>Jared Szechy</h4>
+                            <ul style="list-style: none;">
+                                <li><i class="fa fa-location-arrow"></i> Columbus, OH</li>
+                                <li><i class="fa fa-building"></i> Bold Penguin (we're hiring!)</li>
+                                <li><i class="fab fa-github"></i> szechyjs</li>
+                                <li><i class="fab fa-linkedin"></i> szechyjs</li>
+                                <li><i class="fab fa-twitter"></i> szechyjs</li>
+                            </ul>
+                        </div>
+
+                    </div>
+                </section>
+                <section>
+                    <h3>Why?</h3>
                     <ul>
                         <li>Performance</li>
                         <li>Interface with existing library</li>
                     </ul>
                 </section>
                 <section>
-                    <h2>Basic Example</h2>
+                    <h3>Basic Example</h3>
                     <section>
-                        <h3>extconf.rb</h3>
+                        <h4>extconf.rb</h4>
                         <pre class="ruby"><code data-trim data-noescape>
                             require 'mkmf'
     
                             create_makefile 'hello_ext'							
                         </code></pre>
-                        <pre class="shell"><code data-trim data-noescape>
+                        <pre class="fragment shell"><code data-trim data-noescape>
                             $ ruby extconf.rb
                             creating Makefile
                         </code></pre>
+                        <pre class="fragment shell"><code data-trim data-noescape>
+                            $ touch hello.c
+                        </code></pre>
+                        <pre class="fragment shell"><code data-trim data-noescape>
+                            $ make
+                            compiling hello.c
+                            linking shared-object hello_ext.bundle
+                        </code></pre>
+                        <small class="fragment">Linux systems will create <em>hello_ext.so</em></small>
                     </section>
                     <section>
-                        <h3>Initialization</h3>
+                        <h4>Loading the extension</h4>
+                        <pre class="irb"><code data-trim data-noescape>
+                            irb(main):001:0> require_relative 'hello_ext'
+                        </code></pre>
+                        <pre class="fragment irb"><code data-trim data-noescape data-line-numbers="7">
+                            Traceback (most recent call last):
+                                    5: from ruby/2.7.1/bin/irb:23:in `&lt;main&gt;'
+                                    4: from ruby/2.7.1/bin/irb:23:in `load'
+                                    3: from ruby/2.7.1/lib/ruby/gems/2.7.0/gems/irb-1.2.3/exe/irb:11:in `&lt;top (required)&gt;'
+                                    2: from (irb):1
+                                    1: from (irb):1:in `require_relative'
+                            LoadError (dlsym(0x7fcdc392ca70, Init_hello_ext): symbol not found - hello/hello_ext.bundle)
+                        </code></pre>
+                    </section>
+                    <section>
+                        <h4>Initialization</h4>
                         <ul>
-                            <li>Must implement the <em>Init_[ext_name]</em> function</li>
+                            <li>Must implement the <code class="hljs-string">Init_[ext_name]</code> function</li>
                             <li>Called when the extension is required</li>
                             <li>Responsible for defining modules, classes, methods and constants</li>
                         </ul>
                         <pre class="cpp"><code data-trim data-noescape>
                             void Init_hello_ext()
                             {
-                                // Define things here
+                                // TODO: Define things here
                             }						
+                        </code></pre>
+                        <pre class="fragment irb"><code data-trim data-noescape>
+                            irb(main):001:0> require_relative 'hello_ext'
+                            => true
                         </code></pre>
                     </section>
                     <section>
-                        <h3>Hello method</h3>
-                        <ul>
-                            <li>Every function must return a VALUE</li>
-                        </ul>
+                        <h4>Hello method</h4>
                         <pre class="cpp"><code data-trim data-noescape>
                             #include &lt;ruby.h&gt;
                             #include &lt;stdio.h&gt;
@@ -68,9 +134,12 @@
                                 return Qnil;
                             }					
                         </code></pre>
+                        <ul class="fragment">
+                            <li>Every function must return a <code class="hljs-string">VALUE</code></li>
+                        </ul>
                     </section>
                     <section>
-                        <h3>Definitions</h3>
+                        <h4>Definitions</h4>
                         <pre class="cpp"><code data-trim data-noescape data-line-numbers="3-4">
                             void Init_hello_ext()
                             {
@@ -80,7 +149,7 @@
                         </code></pre>
                     </section>
                     <section>
-                        <h3>hello.c</h3>
+                        <h4>hello.c</h4>
                         <pre class="cpp"><code data-trim data-noescape>
                             #include &lt;ruby.h&gt;
                             #include &lt;stdio.h&gt;
@@ -99,7 +168,7 @@
                         </code></pre>
                     </section>
                     <section>
-                        <h3>Build and Test</h3>
+                        <h4>Build and Test</h4>
                         <pre class="shell"><code data-trim data-noescape>
                             $ make
                             compiling hello.c
@@ -114,7 +183,7 @@
                         </code></pre>
                     </section>
                     <section>
-                        <h3>Benchmark</h3>
+                        <h4>Benchmark</h4>
                         <pre class="ruby"><code data-trim data-noescape>
                             Benchmark.ips do |x|
                               x.report('ext') { HelloExt.hello_world }
@@ -130,32 +199,31 @@
                     </section>
                 </section>
                 <section>
-                    <h2>Primes Benchmark</h2>
+                    <h3>Primes Benchmark</h3>
                     <section>
                         <p>Use existing benchmark work from Ivan Zahariev</p>
                         <img data-src="images/bench-lang-sm.png"/>
                         <p><a href="https://github.com/famzah/langs-performance" target="_blank">https://github.com/famzah/langs-performance</a></p>
                     </section>
                     <section>
-                        <h3 style="text-transform: none">lib/primes/primes.rb</h3>
+                        <h4 style="text-transform: none">lib/primes/primes.rb</h4>
                         <pre class="ruby"><code data-trim data-noescape>
                             module Primes
                               def self.get_primes7(n)
-                                return [] if n  < 2
-                                 return [2] if n == 2
+                                return [] if n &lt; 2
+                                return [2] if n == 2
                               
-                                # do only odd numbers starting at 3
                                 s = 3.upto(n + 1).select(&:odd?)
                               
-                                mroot = n ** 0.5
+                                mroot = n**0.5
                                 half = s.length
                                 i = 0
                                 m = 3
-                                until m > mroot do
+                                until m > mroot
                                   if s[i]
                                     j = (m * m - 3) / 2
                                     s[j] = nil
-                                    until j >= half do
+                                    until j >= half
                                       s[j] = nil
                                       j += m
                                     end
@@ -169,7 +237,7 @@
                         </code></pre>
                     </section>
                     <section>
-                        <h3 style="text-transform: none">ext/primes/primes.cpp</h3>
+                        <h4 style="text-transform: none">ext/primes/primes.cpp</h4>
                         <pre class="cpp"><code data-trim data-noescape>
                             #include &lt;cstdio&gt;
                             #include &lt;cmath&gt;
@@ -177,6 +245,7 @@
                             #include &lt;algorithm&gt;
                             #include &lt;cstdlib&gt;
                             #include &lt;ctime&gt;
+                            #include &lt;ruby.h&gt;
                                                         
                             void get_primes7(int n, std::vector&lt;int&gt; &res) {
                                 if (n < 2) return;
@@ -209,41 +278,40 @@
                                 res.insert(res.begin() + 1, s.begin(), pend);
                             }
                             
-                            extern "C" int get_primes(int);
-                            int get_primes(int n)
-                            {
+                            extern "C" VALUE get_primes(int);
+                            VALUE get_primes(int n) {
                                 std::vector&lt;int&gt; res;
                                 get_primes7(n, res);
-                                return res.size();
-                            }            
+                                VALUE primes = rb_ary_new2(res.size());
+                                for (int i = 0; i &lt; res.size(); i++) {
+                                    rb_ary_store(primes, i, INT2NUM(res[i]));
+                                }
+                                return primes;
+                            }
                         </code></pre>
                     </section>
                     <section>
-                        <h3 style="text-transform: none">ext/primes/native.c</h3>
+                        <h4 style="text-transform: none">ext/primes/native.c</h4>
                         <pre class="c"><code data-trim data-noescape>
                             #include &lt;ruby.h&gt;
-                            
-                            extern int get_primes(int);
 
+                            extern VALUE get_primes(int);
                             VALUE Primes = Qnil;
-                            
-                            static VALUE method_get_primes_native(VALUE self, VALUE num)
-                            {
+
+                            static VALUE method_get_primes_native(VALUE self, VALUE num) {
                                 Check_Type(num, T_FIXNUM);
                                 int count = NUM2INT(num);
-                                int retval = get_primes(count);
-                                return INT2NUM(retval);
+                                return get_primes(count);
                             }
-                            
-                            void Init_primes_ext()
-                            {
+
+                            void Init_primes_ext() {
                                 Primes = rb_define_module("Primes");
                                 rb_define_singleton_method(Primes, "get_primes_native", method_get_primes_native, 1);
                             }
                         </code></pre>
                     </section>
                     <section>
-                        <h3 style="text-transform: none">lib/primes.rb</h3>
+                        <h4 style="text-transform: none">lib/primes.rb</h4>
                         <pre class="ruby"><code data-trim data-noescape>
                             require 'primes/primes'
                             require 'primes/primes_ext'
@@ -261,8 +329,8 @@
                         </code></pre>
                     </section>
                     <section>
-                        <h3>Results</h3>
-                        <pre class="shell"><code data-trim data-noescape>
+                        <h4>Results</h4>
+                        <pre class="irb"><code data-trim data-noescape>
                             $ bin/console
                             irb(main):001:0> Primes::benchmark(10_000_000)
                         </code></pre>
@@ -280,9 +348,110 @@
                     </section>
                 </section>
                 <section>
-                    <h2>Gems</h2>
+                    <h3>External Libraries</h3>
                     <section>
-                        <h3>gemspec</h3>
+                        <h4>primesieve</h4>
+                        <ul>
+                            <li>Highly optimized library for generating primes</li>
+                            <li>C/C++ library</li>
+                            <li>Supports multi-threading</li>
+                        </ul>
+                    </section>
+                    <section>
+                        <h4>extconf.rb</h4>
+                        <pre class="ruby"><code data-trim data-noescape data-line-numbers="3-4">
+                            require 'mkmf'
+
+                            find_header('primesieve.h')
+                            find_library('primesieve', 'primesieve_generate_primes')
+
+                            create_makefile('primes/primes_ext')
+                        </code></pre>
+                        <pre class="fragment shell"><code data-trim data-noescape>
+                            $ ruby extconf.rb
+                            checking for primesieve.h... yes
+                            checking for primesieve_generate_primes() in -lprimesieve... yes
+                            creating Makefile
+                        </code></pre>
+                    </section>
+                    <section>
+                        <h3 style="text-transform: none">ext/primes/native.c</h3>
+                        <pre class="c"><code data-trim data-noescape data-line-numbers="2,13-23,28">
+                            #include &lt;ruby.h&gt;
+                            #include &lt;primesieve.h&gt;
+
+                            extern VALUE get_primes(int);
+                            VALUE Primes = Qnil;
+
+                            static VALUE method_get_primes_native(VALUE self, VALUE num) {
+                                Check_Type(num, T_FIXNUM);
+                                int count = NUM2INT(num);
+                                return get_primes(count);
+                            }
+
+                            static VALUE method_get_primesieve_primes(VALUE self, VALUE num) {
+                                Check_Type(num, T_FIXNUM);
+                                size_t size, i;
+                                int* primes = primesieve_generate_primes(0, NUM2ULL(num), &size, INT_PRIMES);
+                                VALUE rubyPrimes = rb_ary_new2(size);
+                                for (i = 0; i &lt; size; i++) {
+                                    rb_ary_store(rubyPrimes, i, INT2NUM(primes[i]));
+                                }
+                                primesieve_free(primes);
+                                return rubyPrimes;
+                            }
+
+                            void Init_primes_ext() {
+                                Primes = rb_define_module("Primes");
+                                rb_define_singleton_method(Primes, "get_primes_native", method_get_primes_native, 1);
+                                rb_define_singleton_method(Primes, "get_primesieve", method_get_primesieve_primes, 1);
+                            }
+                        </code></pre>
+                    </section>
+                    <section>
+                        <h3 style="text-transform: none">lib/primes.rb</h3>
+                        <pre class="ruby"><code data-trim data-noescape data-line-numbers="10">
+                            require 'primes/primes'
+                            require 'primes/primes_ext'
+                            require 'benchmark/ips'
+
+                            module Primes
+                              def self.benchmark(count)
+                                Benchmark.ips do |x|
+                                  x.report('rb') { get_primes7(count) }
+                                  x.report('cpp') { get_primes_native(count) }
+                                  x.report('primesieve') { get_primesieve(count) }
+                                  x.compare!
+                                end
+                              end
+                            end
+                        </code></pre>
+                    </section>
+                    <section>
+                        <h4>Results</h4>
+                        <pre class="irb"><code data-trim data-noescape>
+                            $ bin/console
+                            irb(main):001:0> Primes::benchmark(10_000_000)
+                        </code></pre>
+                        <p class="fragment">drumroll...</p>
+                        <pre class="fragment text"><code data-trim data-noescape>
+                            Calculating -------------------------------------
+                                            rb      0.792  (± 0.0%) i/s -      4.000  in   5.052887s
+                                           cpp     12.111  (± 8.3%) i/s -     61.000  in   5.047499s
+                                    primesieve    113.338  (± 2.6%) i/s -    567.000  in   5.006552s
+
+                            Comparison:
+                                    primesieve:      113.3 i/s
+                                           cpp:       12.1 i/s - 9.36x  (± 0.00) slower
+                                            rb:        0.8 i/s - 143.16x  (± 0.00) slower
+                        </code></pre>
+                        <p class="fragment">~150x faster</p>
+                    </section>
+                </section>
+                <section>
+                    <h3>Gems</h3>
+                    <section>
+                        <h4>gemspec</h4>
                         <pre class="ruby"><code data-trim data-noescape>
                             spec.extensions = %w[ext/my_gem/extconf.rb]
 
@@ -291,7 +460,7 @@
                         </code></pre>
                     </section>
                     <section>
-                        <h3>Rakefile</h3>
+                        <h4>Rakefile</h4>
                         <pre class="ruby"><code data-trim data-noescape>
                             require "rake/extensiontask"
 
@@ -300,7 +469,7 @@
                               ext.lib_dir = "lib/my_gem"
                             end
                         </code></pre>
-                        <p>Compile during development</p>
+                        <h4>Compile during development</h4>
                         <pre class="shell"><code data-trim data-noescape>
                             $ rake compile
                             install -c tmp/x86_64-darwin18/my_gem_ext/2.7.1/my_gem_ext.bundle lib/my_gem/my_gem_ext.bundle
@@ -308,7 +477,7 @@
                         </code></pre>
                     </section>
                     <section>
-                        <h3>Gem Install</h3>
+                        <h4>Gem Install</h4>
                         <pre class="shell"><code data-trim data-noescape>
                             $ gem install my_gem-0.1.0.gem
                             Building native extensions. This could take a while...
@@ -318,13 +487,13 @@
                     </section>
                 </section>
                 <section>
-                    <h2>Documentation</h2>
+                    <h3>Documentation</h3>
                     <section>
-                        <h3>Official Documentation</h3>
+                        <h4>Official Documentation</h4>
                         <p class="fragment">There is none...</p>
                     </section>
                     <section>
-                        <h3>Useful Sites/Blog Posts</h3>
+                        <h4>Useful Sites/Blog Posts</h4>
                         <ul>
                             <li><a href="https://guides.rubygems.org/gems-with-extensions/" target="_blank">https://guides.rubygems.org/gems-with-extensions/</a></li>
                             <li><a href="http://clalance.blogspot.com/2011/01/writing-ruby-extensions-in-c-part-1.html" target="_blank">http://clalance.blogspot.com/2011/01/writing-ruby-extensions-in-c-part-1.html</a></li>
@@ -333,18 +502,19 @@
                         </ul>
                     </section>
                     <section>
-                        <h3>Reference Gems</h3>
+                        <h4>Reference Gems</h4>
                         <ul>
                             <li>nokogiri</li>
                             <li>pg</li>
                             <li>mysql2</li>
+                            <li>primesieve</li>
                         </ul>
                     </section>
                 </section>
                 <section>
-                    <h2>Thank You</h2>
-                    <p>Slides: <a href="https://talks.szechy.dev/rb-native" target="_blank">talks.szechy.dev/rb-native</a></p>
-                    <p>Code: <a href="https://github.com/szechyjs/talks/tree/master/rb-native" target="_blank">github.com/szechyjs/talks</a></p>
+                    <h3>Thank You</h3>
+                    <p><i class="fa fa-slideshare"></i> <a href="https://talks.szechy.dev/rb-native" target="_blank">talks.szechy.dev/rb-native</a></p>
+                    <p><i class="fab fa-github"></i> <a href="https://github.com/szechyjs/talks/tree/master/rb-native" target="_blank">github.com/szechyjs/talks</a></p>
                 </section>
             </div>
         </div>
